@@ -1,0 +1,7 @@
+src/app/(dashboard)/admin/page.tsx(161,19): error TS2322: Type '(v: number) => [string, string]' is not assignable to type 'Formatter<ValueType, NameType> & ((value: ValueType, name: NameType, item: TooltipPayloadEntry, index: number, payload: TooltipPayload) => ReactNode | [...])'.
+  Type '(v: number) => [string, string]' is not assignable to type 'Formatter<ValueType, NameType>'.
+    Types of parameters 'v' and 'value' are incompatible.
+      Type 'ValueType | undefined' is not assignable to type 'number'.
+        Type 'undefined' is not assignable to type 'number'.
+src/components/shared/AdminSidebar.tsx(63,35): error TS2339: Property 'exact' does not exist on type '{ readonly title: "Overview"; readonly href: "/admin"; readonly icon: "LayoutDashboard"; readonly exact: true; } | { readonly title: "Products"; readonly href: "/admin/products"; readonly icon: "Package"; } | ... 6 more ... | { ...; }'.
+  Property 'exact' does not exist on type '{ readonly title: "Products"; readonly href: "/admin/products"; readonly icon: "Package"; }'.
