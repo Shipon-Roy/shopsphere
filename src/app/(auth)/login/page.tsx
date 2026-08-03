@@ -7,6 +7,11 @@ export const metadata: Metadata = {
   description: "Sign in to your ShopSphere account",
 };
 
-export default function LoginPage() {
-  return <LoginForm />;
+interface Props {
+  searchParams: Promise<{ callbackUrl?: string }>;
+}
+
+export default async function LoginPage({ searchParams }: Props) {
+  const { callbackUrl } = await searchParams;
+  return <LoginForm callbackUrl={callbackUrl ?? "/"} />;
 }

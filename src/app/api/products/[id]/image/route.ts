@@ -30,7 +30,7 @@ export async function GET(
       return new NextResponse("Image not found", { status: 404 });
     }
 
-    return new NextResponse(img.data as unknown as Buffer, {
+    return new NextResponse(img.data as unknown as BodyInit, {
       status: 200,
       headers: {
         "Content-Type": img.contentType ?? "image/jpeg",

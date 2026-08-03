@@ -55,6 +55,7 @@ export default function UserCartPage() {
       });
       if (!res.ok) throw new Error();
       await fetchCart();
+      window.dispatchEvent(new Event("cart:updated"));
     } catch {
       toast.error("Failed to update quantity");
     } finally {
@@ -69,6 +70,7 @@ export default function UserCartPage() {
       if (!res.ok) throw new Error();
       toast.success("Item removed");
       await fetchCart();
+      window.dispatchEvent(new Event("cart:updated"));
     } catch {
       toast.error("Failed to remove item");
     } finally {
@@ -97,6 +99,7 @@ export default function UserCartPage() {
       if (!res.ok) { toast.error(json.message ?? "Failed to place order"); return; }
       toast.success("Order placed successfully!");
       setCheckoutOpen(false);
+      window.dispatchEvent(new Event("cart:updated"));
       router.push(`/user/orders/${json.data._id}`);
     } catch {
       toast.error("Something went wrong");

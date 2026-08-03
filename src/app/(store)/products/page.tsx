@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { APP_NAME, PRODUCT_SORT_OPTIONS } from "@/constants";
+import { APP_NAME } from "@/constants";
 import { ProductsClient } from "./ProductsClient";
 
 export const metadata: Metadata = {
@@ -13,9 +13,7 @@ export default function ProductsPage() {
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">All Products</h1>
-        <p className="text-muted-foreground mt-1">
-          Browse our full catalog
-        </p>
+        <p className="text-muted-foreground mt-1">Browse our full catalog</p>
       </div>
       <Suspense fallback={<ProductsPageSkeleton />}>
         <ProductsClient />

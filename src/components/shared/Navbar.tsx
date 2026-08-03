@@ -1,31 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
 import {
-  ShoppingCart,
-  User,
-  Search,
-  Menu,
-  X,
-  LogOut,
-  LayoutDashboard,
-  Package,
+  ShoppingCart, User, Search, Menu, X,
+  LogOut, LayoutDashboard, Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { APP_NAME } from "@/constants";
 import { cn } from "@/lib/utils";
 
 interface NavbarProps {
   user?: { name: string; email: string; role: string } | null;
+  // cartCount prop kept for API compatibility but cart is fetched client-side
   cartCount?: number;
 }
 
@@ -34,11 +26,51 @@ const NAV_LINKS = [
   { href: "/products", label: "Products" },
 ];
 
-export function Navbar({ user, cartCount = 0 }: NavbarProps) {
+// Custom event name — dispatched by ProductCard / cart page after mutations
+export const CART_UPDATED_EVENT = "cart:updated";
+
+export function Navbar({ user }: NavbarProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [cartCount, setCartCount] = useState(0);
+
+  // ── Fetch cart item count ────────────────────────────────────────────────
+  const fetchCartCount = useCallback(async () => {
+    if (!user) {
+      setCartCount(0);
+      return;
+    }
+    try {
+      const res = await fetch("/api/cart", { cache: "no-store" });
+      if (!res.ok) { setCartCount(0); return; }
+      const json = await res.json();
+      const items: Array<{ quantity: number }> = json.data?.items ?? [];
+      const total = items.reduce((sum, item) => sum + item.quantity, 0);
+      setCartCount(total);
+    } catch {
+      setCartCount(0);
+    }
+  }, [user]);
+
+  // Fetch on mount and whenever user changes
+  useEffect(() => {
+    fetchCartCount();
+  }, [fetchCartCount]);
+
+  // Re-fetch when navigating away from cart (user may have changed qty)
+  useEffect(() => {
+    fetchCartCount();
+  }, [pathname, fetchCartCount]);
+
+  // Listen for cart:updated event dispatched by add-to-cart actions
+  useEffect(() => {
+    const handler = () => fetchCartCount();
+    window.addEventListener(CART_UPDATED_EVENT, handler);
+    return () => window.removeEventListener(CART_UPDATED_EVENT, handler);
+  }, [fetchCartCount]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +83,7 @@ export function Navbar({ user, cartCount = 0 }: NavbarProps) {
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
+    setCartCount(0);
     router.push("/login");
     router.refresh();
   };
@@ -96,27 +129,17 @@ export function Navbar({ user, cartCount = 0 }: NavbarProps) {
                 <Button type="submit" size="icon-sm" variant="ghost">
                   <Search className="h-4 w-4" />
                 </Button>
-                <Button
-                  type="button"
-                  size="icon-sm"
-                  variant="ghost"
-                  onClick={() => setSearchOpen(false)}
-                >
+                <Button type="button" size="icon-sm" variant="ghost" onClick={() => setSearchOpen(false)}>
                   <X className="h-4 w-4" />
                 </Button>
               </form>
             ) : (
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => setSearchOpen(true)}
-                aria-label="Search"
-              >
+              <Button variant="ghost" size="icon-sm" onClick={() => setSearchOpen(true)} aria-label="Search">
                 <Search className="h-4 w-4" />
               </Button>
             )}
 
-            {/* Cart */}
+            {/* Cart icon with live count */}
             <Button variant="ghost" size="icon-sm" asChild className="relative">
               <Link href="/user/cart" aria-label={`Cart (${cartCount} items)`}>
                 <ShoppingCart className="h-4 w-4" />
@@ -165,10 +188,7 @@ export function Navbar({ user, cartCount = 0 }: NavbarProps) {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={handleLogout}
-                    className="text-destructive focus:text-destructive"
-                  >
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign out
                   </DropdownMenuItem>
@@ -182,9 +202,7 @@ export function Navbar({ user, cartCount = 0 }: NavbarProps) {
 
             {/* Mobile menu button */}
             <Button
-              variant="ghost"
-              size="icon-sm"
-              className="md:hidden"
+              variant="ghost" size="icon-sm" className="md:hidden"
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Toggle menu"
             >
@@ -194,12 +212,10 @@ export function Navbar({ user, cartCount = 0 }: NavbarProps) {
         </div>
 
         {/* Mobile nav */}
-        <div
-          className={cn(
-            "md:hidden overflow-hidden transition-all duration-200",
-            mobileOpen ? "max-h-48 pb-4" : "max-h-0"
-          )}
-        >
+        <div className={cn(
+          "md:hidden overflow-hidden transition-all duration-200",
+          mobileOpen ? "max-h-48 pb-4" : "max-h-0"
+        )}>
           <nav className="flex flex-col gap-1 pt-2">
             {NAV_LINKS.map((link) => (
               <Link

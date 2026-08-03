@@ -108,6 +108,8 @@ export function ProductsClient() {
       }
       if (!res.ok) throw new Error();
       toast.success("Added to cart!");
+      // Notify Navbar to refresh cart count
+      window.dispatchEvent(new Event("cart:updated"));
     } catch {
       toast.error("Failed to add to cart");
     }

@@ -44,6 +44,8 @@ export function ProductDetailClient({ id }: Props) {
       if (res.status === 401) { router.push("/login"); return; }
       if (!res.ok) throw new Error();
       toast.success("Added to cart!");
+      // Notify Navbar to refresh cart count
+      window.dispatchEvent(new Event("cart:updated"));
     } catch {
       toast.error("Failed to add to cart");
     } finally {

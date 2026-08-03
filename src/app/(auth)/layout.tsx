@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { APP_NAME } from "@/constants";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: {
     default: `Auth | ${APP_NAME}`,

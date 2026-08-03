@@ -1,11 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Middleware — Route Protection
+// Proxy (formerly middleware) — Route Protection
 // Runs on the Edge Runtime before every matched request.
+// Next.js 16+ uses "proxy" convention instead of "middleware".
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromRequest } from "@/lib/auth";
-import { COOKIE_NAME } from "@/constants";
 
 // Routes that require authentication (any role)
 const AUTH_REQUIRED_PREFIXES = ["/user", "/api/cart", "/api/orders", "/api/me"];
@@ -16,7 +16,7 @@ const ADMIN_REQUIRED_PREFIXES = ["/admin", "/api/admin"];
 // Routes that redirect to dashboard if already logged in
 const GUEST_ONLY_PATHS = ["/login", "/register"];
 
-export async function middleware(request: NextRequest): Promise<NextResponse> {
+export async function proxy(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
 
   const user = await getUserFromRequest(request);
@@ -39,7 +39,6 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     }
 
     if (user.role !== "admin") {
-      // Authenticated but not admin → redirect to user dashboard
       return NextResponse.redirect(new URL("/user/profile", request.url));
     }
 
@@ -49,7 +48,6 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
   // ── Auth-required routes ─────────────────────────────────────────────────
   if (AUTH_REQUIRED_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
     if (!user) {
-      // For API routes return 401 instead of redirect
       if (pathname.startsWith("/api/")) {
         return NextResponse.json(
           { success: false, message: "Unauthorized" },
@@ -70,13 +68,6 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths EXCEPT:
-     * - _next/static (static files)
-     * - _next/image (image optimization)
-     * - favicon.ico, sitemap.xml, robots.txt
-     * - public folder assets
-     */
     "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|public/).*)",
   ],
 };
