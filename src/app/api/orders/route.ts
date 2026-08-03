@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
+import "@/lib/ensureModels";
 import { CartModel } from "@/models/Cart";
 import { OrderModel } from "@/models/Order";
 import { ProductModel } from "@/models/Product";

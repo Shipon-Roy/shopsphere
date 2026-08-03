@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
+import "@/lib/ensureModels";
 import { ProductModel } from "@/models/Product";
 import { CategoryModel } from "@/models/Category";
 import { DEFAULT_LIMIT } from "@/constants";
@@ -22,17 +23,34 @@ export async function GET(request: NextRequest) {
     const featured = searchParams.get("featured");
     const sortParam = searchParams.get("sort") ?? "createdAt:desc";
 
-    // Build filter
+    // ── Build filter ──────────────────────────────────────────────────────────
     const filter: Record<string, unknown> = { isActive: true };
 
+    // Text search — use regex fallback if $text index not yet created
     if (search) {
-      filter.$text = { $search: search };
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { tags: { $regex: search, $options: "i" } },
+      ];
     }
 
     if (category) {
-      // Support slug or ObjectId
+      // Support category slug
       const cat = await CategoryModel.findOne({ slug: category }).lean();
       if (cat) filter.category = cat._id;
+      else {
+        // No matching category — return empty
+        return NextResponse.json(
+          {
+            success: true,
+            message: "OK",
+            data: [],
+            pagination: { page, limit, total: 0, totalPages: 0, hasNextPage: false, hasPrevPage: false },
+          },
+          { status: 200 }
+        );
+      }
     }
 
     if (minPrice || maxPrice) {
@@ -44,11 +62,17 @@ export async function GET(request: NextRequest) {
 
     if (featured === "true") filter.isFeatured = true;
 
-    // Sort
-    const [sortField, sortDir] = sortParam.split(":");
-    const sort: Record<string, 1 | -1> = {};
-    sort[sortField ?? "createdAt"] = sortDir === "asc" ? 1 : -1;
+    // ── Build sort ────────────────────────────────────────────────────────────
+    // sortParam format: "field:dir" — field may contain dots e.g. "ratings.average:desc"
+    const colonIdx = sortParam.lastIndexOf(":");
+    const sortField = colonIdx > -1 ? sortParam.slice(0, colonIdx) : "createdAt";
+    const sortDir = colonIdx > -1 ? sortParam.slice(colonIdx + 1) : "desc";
+    // Use Mongoose sort object — dot notation keys work fine here
+    const sort: Record<string, 1 | -1> = {
+      [sortField]: sortDir === "asc" ? 1 : -1,
+    };
 
+    // ── Query ─────────────────────────────────────────────────────────────────
     const [products, total] = await Promise.all([
       ProductModel.find(filter)
         .populate("category", "name slug")
@@ -74,7 +98,14 @@ export async function GET(request: NextRequest) {
       { success: true, message: "OK", data: products, pagination },
       { status: 200 }
     );
-  } catch {
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
+  } catch (error: unknown) {
+    console.error("[GET /api/products]", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: error instanceof Error ? error.message : "Internal server error",
+      },
+      { status: 500 }
+    );
   }
 }

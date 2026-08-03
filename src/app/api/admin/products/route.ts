@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
+import "@/lib/ensureModels";
 import { ProductModel } from "@/models/Product";
 import { requireAdmin } from "@/lib/auth";
 import { DEFAULT_LIMIT } from "@/constants";
@@ -17,7 +18,13 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") ?? "";
 
     const filter: Record<string, unknown> = {};
-    if (search) filter.$text = { $search: search };
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { sku: { $regex: search, $options: "i" } },
+        { tags: { $regex: search, $options: "i" } },
+      ];
+    }
 
     const [products, total] = await Promise.all([
       ProductModel.find(filter)

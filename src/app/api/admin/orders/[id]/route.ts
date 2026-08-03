@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
+import "@/lib/ensureModels";
 import { OrderModel } from "@/models/Order";
 import { requireAdmin } from "@/lib/auth";
 import mongoose from "mongoose";

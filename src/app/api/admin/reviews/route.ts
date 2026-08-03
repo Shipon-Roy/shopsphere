@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
+import "@/lib/ensureModels";
 import { ReviewModel } from "@/models/Review";
 import { requireAdmin } from "@/lib/auth";
 import { DEFAULT_LIMIT } from "@/constants";
