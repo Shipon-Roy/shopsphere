@@ -6,3 +6,4 @@ export * from "./BrandForm";
 export * from "./ProfileForm";
 export * from "./BannerForm";
 export * from "./SettingsForm";
+export * from "./ImageUploader";

@@ -1,106 +1,99 @@
 import Link from "next/link";
-import { Package, Mail, Phone, MapPin } from "lucide-react";
-import { APP_NAME } from "@/constants";
-import { Separator } from "@/components/ui/separator";
+import { Package } from "lucide-react";
+import { APP_NAME } from "@/constants"; 
+import { BackToTop } from "./BackToTop";
 
-const STORE_LINKS = [
-  { href: "/", label: "Home" },
-  { href: "/products", label: "Products" },
-];
-
-const ACCOUNT_LINKS = [
-  { href: "/login", label: "Sign In" },
-  { href: "/register", label: "Create Account" },
-  { href: "/user/orders", label: "My Orders" },
-  { href: "/user/profile", label: "My Profile" },
+const FOOTER_LINKS = [
+  {
+    title: "Get to Know Us",
+    links: [
+      { href: "/", label: "About Us" },
+      { href: "/", label: "Careers" },
+      { href: "/", label: "Press Releases" },
+      { href: "/", label: "Blog" },
+    ],
+  },
+  {
+    title: "Make Money with Us",
+    links: [
+      { href: "/", label: "Sell on ShopSphere" },
+      { href: "/", label: "Become an Affiliate" },
+      { href: "/", label: "Advertise Your Products" },
+    ],
+  },
+  {
+    title: "Let Us Help You",
+    links: [
+      { href: "/user/profile", label: "Your Account" },
+      { href: "/user/orders", label: "Your Orders" },
+      { href: "/", label: "Shipping Rates & Policies" },
+      { href: "/", label: "Returns & Replacements" },
+      { href: "/", label: "Help" },
+    ],
+  },
 ];
 
 export function Footer() {
   return (
-    <footer className="border-t bg-background">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Brand */}
-          <div className="space-y-4">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <Package className="h-4 w-4 text-primary-foreground" />
+    <footer>
+      {/* Back to top */}
+      <BackToTop />
+
+      {/* Main footer */}
+      <div className="bg-[hsl(var(--navy))] text-gray-300">
+        <div className="mx-auto max-w-[1500px] px-4 sm:px-8 py-10">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-8">
+            {/* Brand column */}
+            <div className="col-span-2 sm:col-span-1">
+              <Link href="/" className="flex items-center gap-2 mb-4">
+                <div className="flex h-8 w-8 items-center justify-center rounded bg-primary">
+                  <Package className="h-4 w-4 text-primary-foreground" />
+                </div>
+                <span className="font-bold text-lg text-white">{APP_NAME}</span>
+              </Link>
+              <p className="text-sm text-gray-400 leading-relaxed">
+                Your one-stop modern e-commerce platform. Fast delivery, unbeatable prices, and exceptional service.
+              </p>
+            </div>
+
+            {FOOTER_LINKS.map((col) => (
+              <div key={col.title}>
+                <h4 className="text-white font-semibold text-sm mb-3">{col.title}</h4>
+                <ul className="space-y-2">
+                  {col.links.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        href={link.href}
+                        className="text-sm text-gray-400 hover:text-white transition-colors"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <span className="font-bold text-lg gradient-text">{APP_NAME}</span>
-            </Link>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Your one-stop modern e-commerce platform for all your shopping needs.
-            </p>
-          </div>
-
-          {/* Store */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold">Store</h3>
-            <ul className="space-y-2">
-              {STORE_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Account */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold">Account</h3>
-            <ul className="space-y-2">
-              {ACCOUNT_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Contact */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold">Contact</h3>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                <Mail className="h-4 w-4 mt-0.5 shrink-0" />
-                <span>support@shopsphere.com</span>
-              </li>
-              <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                <Phone className="h-4 w-4 mt-0.5 shrink-0" />
-                <span>+1 (555) 000-0000</span>
-              </li>
-              <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
-                <span>123 Commerce St, NY 10001</span>
-              </li>
-            </ul>
+            ))}
           </div>
         </div>
+      </div>
 
-        <Separator className="my-8" />
-
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
+      {/* Bottom bar */}
+      <div className="bg-[hsl(var(--navy))] border-t border-white/10">
+        <div className="mx-auto max-w-[1500px] px-4 sm:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-6 w-6 items-center justify-center rounded bg-primary">
+              <Package className="h-3 w-3 text-primary-foreground" />
+            </div>
+            <span className="text-white font-bold text-sm">{APP_NAME}</span>
+          </div>
+          <div className="flex items-center gap-4 text-xs text-gray-500">
+            <Link href="/" className="hover:text-gray-300 transition-colors">Conditions of Use</Link>
+            <Link href="/" className="hover:text-gray-300 transition-colors">Privacy Notice</Link>
+            <Link href="/" className="hover:text-gray-300 transition-colors">Interest-Based Ads</Link>
+          </div>
+          <p className="text-xs text-gray-500">
             © {new Date().getFullYear()} {APP_NAME}. All rights reserved.
           </p>
-          <div className="flex items-center gap-4">
-            <Link href="/privacy" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-              Terms of Service
-            </Link>
-          </div>
         </div>
       </div>
     </footer>

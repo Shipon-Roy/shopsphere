@@ -18,7 +18,7 @@ export function AdminLayout({ children, user }: AdminLayoutProps) {
       {/* Sidebar — always visible on lg+, drawer on mobile */}
       <AdminSidebar
         className={cn(
-          "hidden lg:flex shrink-0 flex-col h-full",
+          "hidden lg:flex shrink-0 flex-col h-full bg-gray-800",
         )}
       />
 

@@ -2,12 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Search, SlidersHorizontal, X, ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Search, X, ChevronDown, ChevronUp, SlidersHorizontal } from "lucide-react";
 import { ProductCard } from "@/components/cards/ProductCard";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Pagination } from "@/components/shared/Pagination";
@@ -17,6 +12,20 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useDebounce } from "@/hooks/useDebounce";
 
+const PRICE_RANGES = [
+  { label: "Under $25", min: "", max: "25" },
+  { label: "$25 to $50", min: "25", max: "50" },
+  { label: "$50 to $100", min: "50", max: "100" },
+  { label: "$100 to $200", min: "100", max: "200" },
+  { label: "$200 & Above", min: "200", max: "" },
+];
+
+const STAR_OPTIONS = [
+  { label: "4★ & above", value: "4" },
+  { label: "3★ & above", value: "3" },
+  { label: "2★ & above", value: "2" },
+];
+
 export function ProductsClient() {
   const router = useRouter();
   const pathname = usePathname();
@@ -24,312 +33,283 @@ export function ProductsClient() {
 
   const [products, setProducts] = useState<IProduct[]>([]);
   const [categories, setCategories] = useState<ICategory[]>([]);
-  const [pagination, setPagination] = useState<null | {
-    page: number; limit: number; total: number; totalPages: number;
-    hasNextPage: boolean; hasPrevPage: boolean;
-  }>(null);
+  const [pagination, setPagination] = useState<PaginatedResponse<IProduct>["pagination"] | null>(null);
   const [loading, setLoading] = useState(true);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [searchInput, setSearchInput] = useState(searchParams.get("search") ?? "");
   const debouncedSearch = useDebounce(searchInput, 400);
 
-  // Derived filter state from URL
-  const page = Number(searchParams.get("page") ?? 1);
   const sort = searchParams.get("sort") ?? "createdAt:desc";
   const category = searchParams.get("category") ?? "";
   const minPrice = searchParams.get("minPrice") ?? "";
   const maxPrice = searchParams.get("maxPrice") ?? "";
   const featured = searchParams.get("featured") ?? "";
 
-  const updateParam = useCallback((key: string, value: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value) {
-      params.set(key, value);
-    } else {
-      params.delete(key);
-    }
-    params.delete("page"); // reset page on filter change
-    router.push(`${pathname}?${params.toString()}`);
+  const setParam = useCallback((key: string, value: string) => {
+    const p = new URLSearchParams(searchParams.toString());
+    value ? p.set(key, value) : p.delete(key);
+    p.delete("page");
+    router.push(`${pathname}?${p.toString()}`);
   }, [searchParams, pathname, router]);
 
-  const clearFilters = () => {
-    setSearchInput("");
-    router.push(pathname);
-  };
+  const clearAll = () => { setSearchInput(""); router.push(pathname); };
 
-  const hasActiveFilters = !!(category || minPrice || maxPrice || featured || searchParams.get("search"));
-
-  // Sync debounced search to URL
+  // Sync debounced search
   useEffect(() => {
-    const current = searchParams.get("search") ?? "";
-    if (debouncedSearch !== current) {
-      updateParam("search", debouncedSearch);
-    }
-  }, [debouncedSearch]); // eslint-disable-line react-hooks/exhaustive-deps
+    const curr = searchParams.get("search") ?? "";
+    if (debouncedSearch !== curr) setParam("search", debouncedSearch);
+  }, [debouncedSearch]); // eslint-disable-line
 
   // Fetch products
   useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams(searchParams.toString());
-        const res = await fetch(`/api/products?${params.toString()}`);
-        if (!res.ok) throw new Error("Failed to fetch products");
-        const json: PaginatedResponse<IProduct> = await res.json();
-        setProducts(json.data ?? []);
-        setPagination(json.pagination);
-      } catch {
-        toast.error("Failed to load products");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProducts();
+    setLoading(true);
+    fetch(`/api/products?${searchParams.toString()}`)
+      .then((r) => r.json())
+      .then((j: PaginatedResponse<IProduct>) => {
+        setProducts(j.data ?? []);
+        setPagination(j.pagination ?? null);
+      })
+      .catch(() => toast.error("Failed to load products"))
+      .finally(() => setLoading(false));
   }, [searchParams]);
 
-  // Fetch categories once
+  // Fetch categories
   useEffect(() => {
     fetch("/api/categories?limit=50")
       .then((r) => r.json())
       .then((j) => setCategories(j.data ?? []))
-      .catch(() => {/* silent */});
+      .catch(() => {});
   }, []);
 
   const addToCart = async (productId: string) => {
-    try {
-      const res = await fetch("/api/cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, quantity: 1 }),
-      });
-      if (res.status === 401) {
-        router.push("/login");
-        return;
-      }
-      if (!res.ok) throw new Error();
-      toast.success("Added to cart!");
-      // Notify Navbar to refresh cart count
-      window.dispatchEvent(new Event("cart:updated"));
-    } catch {
-      toast.error("Failed to add to cart");
-    }
+    const res = await fetch("/api/cart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId, quantity: 1 }),
+    });
+    if (res.status === 401) { router.push("/login"); return; }
+    if (!res.ok) { toast.error("Failed to add to cart"); return; }
+    toast.success("Added to cart!");
+    window.dispatchEvent(new Event("cart:updated"));
   };
 
-  return (
-    <div className="flex flex-col gap-4">
-      {/* ── Toolbar ── */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <Input
-            placeholder="Search products…"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            className="pl-9"
-            aria-label="Search products"
-          />
-          {searchInput && (
+  const hasFilters = !!(category || minPrice || maxPrice || featured || searchParams.get("search"));
+  const total = pagination?.total ?? products.length;
+
+  // ── Sidebar ──────────────────────────────────────────────────────────────
+  const Sidebar = () => (
+    <aside className="w-full lg:w-60 shrink-0 space-y-1">
+      {/* Department */}
+      <div className="bg-white rounded-lg p-4 border border-gray-200">
+        <h3 className="font-bold text-gray-900 text-sm mb-3 pb-2 border-b">Department</h3>
+        <ul className="space-y-1">
+          <li>
             <button
-              onClick={() => setSearchInput("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              aria-label="Clear search"
+              onClick={() => setParam("category", "")}
+              className={cn("text-sm w-full text-left px-1 py-0.5 hover:text-[#C7511F] transition-colors",
+                !category ? "font-bold text-[#C7511F]" : "text-[#007185]")}
             >
-              <X className="h-4 w-4" />
+              All Departments
             </button>
+          </li>
+          {categories.map((c) => (
+            <li key={c._id}>
+              <button
+                onClick={() => setParam("category", c.slug === category ? "" : c.slug)}
+                className={cn("text-sm w-full text-left px-1 py-0.5 hover:text-[#C7511F] transition-colors",
+                  category === c.slug ? "font-bold text-[#C7511F]" : "text-[#007185]")}
+              >
+                {c.name}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Price Range */}
+      <div className="bg-white rounded-lg p-4 border border-gray-200">
+        <h3 className="font-bold text-gray-900 text-sm mb-3 pb-2 border-b">Price</h3>
+        <ul className="space-y-1">
+          {PRICE_RANGES.map((r) => {
+            const active = minPrice === r.min && maxPrice === r.max;
+            return (
+              <li key={r.label}>
+                <button
+                  onClick={() => { setParam("minPrice", active ? "" : r.min); setParam("maxPrice", active ? "" : r.max); }}
+                  className={cn("text-sm w-full text-left px-1 py-0.5 hover:text-[#C7511F] transition-colors",
+                    active ? "font-bold text-[#C7511F]" : "text-[#007185]")}
+                >
+                  {r.label}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      {/* Featured */}
+      <div className="bg-white rounded-lg p-4 border border-gray-200">
+        <h3 className="font-bold text-gray-900 text-sm mb-3 pb-2 border-b">Special Offers</h3>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={featured === "true"}
+            onChange={(e) => setParam("featured", e.target.checked ? "true" : "")}
+            className="accent-primary w-4 h-4"
+          />
+          <span className="text-sm text-gray-700">Featured products</span>
+        </label>
+      </div>
+
+      {hasFilters && (
+        <button
+          onClick={clearAll}
+          className="w-full text-sm text-[#C7511F] hover:underline py-1 text-left px-4"
+        >
+          ✕ Clear all filters
+        </button>
+      )}
+    </aside>
+  );
+
+  return (
+    <div>
+      {/* ── Search + Sort bar ── */}
+      <div className="bg-white rounded-lg border border-gray-200 px-4 py-3 mb-3 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          {/* Mobile filter toggle */}
+          <button
+            onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+            className="lg:hidden flex items-center gap-1.5 text-sm font-medium text-gray-700 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50 shrink-0"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Filters
+          </button>
+
+          {/* Search */}
+          <div className="relative flex-1 min-w-0 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search products..."
+              className="w-full pl-9 pr-8 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            />
+            {searchInput && (
+              <button onClick={() => setSearchInput("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Results count */}
+          {!loading && (
+            <p className="text-sm text-gray-600 shrink-0 hidden sm:block">
+              {total.toLocaleString()} result{total !== 1 ? "s" : ""}
+            </p>
           )}
         </div>
 
-        <div className="flex gap-2">
-          <Select value={sort} onValueChange={(v) => updateParam("sort", v)}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              {PRODUCT_SORT_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Button
-            variant="outline"
-            onClick={() => setFiltersOpen((v) => !v)}
-            className={cn(hasActiveFilters && "border-primary text-primary")}
+        {/* Sort */}
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-sm text-gray-600 hidden sm:block">Sort by:</span>
+          <select
+            value={sort}
+            onChange={(e) => setParam("sort", e.target.value)}
+            className="text-sm border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:border-primary bg-white"
           >
-            <SlidersHorizontal className="mr-2 h-4 w-4" />
-            Filters
-            {hasActiveFilters && (
-              <Badge className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px]">
-                !
-              </Badge>
-            )}
-            <ChevronDown className={cn("ml-2 h-4 w-4 transition-transform", filtersOpen && "rotate-180")} />
-          </Button>
-
-          {hasActiveFilters && (
-            <Button variant="ghost" size="icon" onClick={clearFilters} aria-label="Clear all filters">
-              <X className="h-4 w-4" />
-            </Button>
-          )}
+            {PRODUCT_SORT_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
         </div>
       </div>
 
-      {/* ── Filter Panel ── */}
-      {filtersOpen && (
-        <div className="rounded-xl border bg-card p-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {/* Category */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Category
-            </label>
-            <Select value={category} onValueChange={(v) => updateParam("category", v === "__all__" ? "" : v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="All categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all__">All categories</SelectItem>
-                {categories.map((c) => (
-                  <SelectItem key={c._id} value={c.slug}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Min Price */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Min Price ($)
-            </label>
-            <Input
-              type="number"
-              min={0}
-              placeholder="0"
-              value={minPrice}
-              onChange={(e) => updateParam("minPrice", e.target.value)}
-            />
-          </div>
-
-          {/* Max Price */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Max Price ($)
-            </label>
-            <Input
-              type="number"
-              min={0}
-              placeholder="Any"
-              value={maxPrice}
-              onChange={(e) => updateParam("maxPrice", e.target.value)}
-            />
-          </div>
-
-          {/* Featured */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Show
-            </label>
-            <Select value={featured || "__all__"} onValueChange={(v) => updateParam("featured", v === "__all__" ? "" : v)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all__">All products</SelectItem>
-                <SelectItem value="true">Featured only</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      )}
-
       {/* ── Active filter chips ── */}
-      {hasActiveFilters && (
-        <div className="flex flex-wrap gap-2">
+      {hasFilters && (
+        <div className="flex flex-wrap gap-2 mb-3">
           {searchParams.get("search") && (
-            <Badge variant="secondary" className="gap-1.5">
+            <span className="inline-flex items-center gap-1 bg-blue-50 border border-blue-200 text-blue-800 text-xs px-2.5 py-1 rounded-full">
               Search: {searchParams.get("search")}
-              <button onClick={() => { setSearchInput(""); updateParam("search", ""); }} aria-label="Remove search filter">
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
+              <button onClick={() => { setSearchInput(""); setParam("search", ""); }}><X className="h-3 w-3" /></button>
+            </span>
           )}
-          {category && (
-            <Badge variant="secondary" className="gap-1.5">
-              Category: {categories.find(c => c.slug === category)?.name ?? category}
-              <button onClick={() => updateParam("category", "")} aria-label="Remove category filter">
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
+          {category && categories.find(c => c.slug === category) && (
+            <span className="inline-flex items-center gap-1 bg-blue-50 border border-blue-200 text-blue-800 text-xs px-2.5 py-1 rounded-full">
+              {categories.find(c => c.slug === category)?.name}
+              <button onClick={() => setParam("category", "")}><X className="h-3 w-3" /></button>
+            </span>
           )}
-          {minPrice && (
-            <Badge variant="secondary" className="gap-1.5">
-              Min: ${minPrice}
-              <button onClick={() => updateParam("minPrice", "")} aria-label="Remove min price filter">
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          )}
-          {maxPrice && (
-            <Badge variant="secondary" className="gap-1.5">
-              Max: ${maxPrice}
-              <button onClick={() => updateParam("maxPrice", "")} aria-label="Remove max price filter">
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
+          {(minPrice || maxPrice) && (
+            <span className="inline-flex items-center gap-1 bg-blue-50 border border-blue-200 text-blue-800 text-xs px-2.5 py-1 rounded-full">
+              {minPrice && maxPrice ? `$${minPrice}–$${maxPrice}` : minPrice ? `Over $${minPrice}` : `Under $${maxPrice}`}
+              <button onClick={() => { setParam("minPrice", ""); setParam("maxPrice", ""); }}><X className="h-3 w-3" /></button>
+            </span>
           )}
           {featured && (
-            <Badge variant="secondary" className="gap-1.5">
-              Featured only
-              <button onClick={() => updateParam("featured", "")} aria-label="Remove featured filter">
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
+            <span className="inline-flex items-center gap-1 bg-blue-50 border border-blue-200 text-blue-800 text-xs px-2.5 py-1 rounded-full">
+              Featured
+              <button onClick={() => setParam("featured", "")}><X className="h-3 w-3" /></button>
+            </span>
           )}
         </div>
       )}
 
-      {/* ── Results ── */}
-      {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="rounded-xl border overflow-hidden">
-              <Skeleton className="aspect-square w-full" />
-              <div className="p-4 space-y-2">
-                <Skeleton className="h-4 w-2/3" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
-            </div>
-          ))}
+      {/* ── Mobile filters drawer ── */}
+      {mobileFiltersOpen && (
+        <div className="lg:hidden mb-3">
+          <Sidebar />
         </div>
-      ) : products.length === 0 ? (
-        <EmptyState
-          title="No products found"
-          description="Try adjusting your search or filters to find what you're looking for."
-          action={{ label: "Clear filters", onClick: clearFilters }}
-        />
-      ) : (
-        <>
-          <p className="text-sm text-muted-foreground">
-            {pagination?.total ?? products.length} product{(pagination?.total ?? products.length) !== 1 ? "s" : ""} found
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {products.map((product) => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                onAddToCart={addToCart}
-              />
-            ))}
-          </div>
-          {pagination && (
-            <Pagination pagination={pagination} className="mt-4" />
-          )}
-        </>
       )}
+
+      <div className="flex gap-3 items-start">
+        {/* Desktop sidebar */}
+        <div className="hidden lg:block">
+          <Sidebar />
+        </div>
+
+        {/* Product grid */}
+        <div className="flex-1 min-w-0">
+          {loading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="bg-white rounded-lg overflow-hidden animate-pulse border border-gray-200">
+                  <div className="aspect-square bg-gray-100" />
+                  <div className="p-3 space-y-2">
+                    <div className="h-3 bg-gray-200 rounded w-1/3" />
+                    <div className="h-4 bg-gray-200 rounded" />
+                    <div className="h-4 bg-gray-200 rounded w-4/5" />
+                    <div className="h-3 bg-gray-200 rounded w-1/2" />
+                    <div className="h-5 bg-gray-200 rounded w-2/5" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : products.length === 0 ? (
+            <div className="bg-white rounded-lg border border-gray-200">
+              <EmptyState
+                title="No results found"
+                description="Try adjusting your search or filter to find what you're looking for."
+                action={{ label: "Clear all filters", onClick: clearAll }}
+              />
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+                {products.map((p) => (
+                  <ProductCard key={p._id} product={p} onAddToCart={addToCart} />
+                ))}
+              </div>
+              {pagination && (
+                <div className="mt-6 bg-white rounded-lg border border-gray-200 p-4">
+                  <Pagination pagination={pagination} />
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

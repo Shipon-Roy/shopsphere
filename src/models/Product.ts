@@ -53,12 +53,13 @@ productSchema.set("toJSON", {
     ret._id = String(ret._id);
     if (ret.category?._id) ret.category._id = String(ret.category._id);
     if (ret.brand?._id) ret.brand._id = String(ret.brand._id);
-    // Strip binary image data — serve via dedicated image endpoint
+    // Strip binary image data from API responses — images are served via /api/products/[id]/image
+    // Keep only metadata so the client knows how many images exist
     if (Array.isArray(ret.images)) {
-      ret.images = ret.images.map((img: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
-        contentType: img.contentType,
-        originalName: img.originalName,
-        size: img.size,
+      ret.images = ret.images.map((_img: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+        contentType: _img.contentType,
+        originalName: _img.originalName,
+        size: _img.size,
       }));
     }
     delete ret.__v; // eslint-disable-line @typescript-eslint/no-dynamic-delete

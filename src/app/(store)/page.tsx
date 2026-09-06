@@ -1,253 +1,217 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, ShoppingBag, Truck, Shield, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { ArrowRight, Truck, Shield, RefreshCw, Headphones, ChevronRight } from "lucide-react";
 import { APP_NAME, APP_DESCRIPTION } from "@/constants";
 
 export const metadata: Metadata = {
-  title: `${APP_NAME} — Modern E-Commerce`,
+  title: `${APP_NAME} — Shop Online`,
   description: APP_DESCRIPTION,
 };
 
-// Feature highlights shown below the hero
-const FEATURES = [
-  {
-    icon: Truck,
-    title: "Free Shipping",
-    description: "On orders over $100",
-  },
-  {
-    icon: Shield,
-    title: "Secure Payment",
-    description: "100% protected transactions",
-  },
-  {
-    icon: RefreshCw,
-    title: "Easy Returns",
-    description: "30-day hassle-free returns",
-  },
-  {
-    icon: ShoppingBag,
-    title: "Quality Products",
-    description: "Curated selection just for you",
-  },
+const CATEGORIES = [
+  { name: "Electronics", emoji: "💻", href: "/products?category=electronics", color: "bg-blue-50" },
+  { name: "Clothing", emoji: "👕", href: "/products?category=clothing", color: "bg-pink-50" },
+  { name: "Home & Garden", emoji: "🏡", href: "/products?category=home-garden", color: "bg-green-50" },
+  { name: "Sports", emoji: "⚽", href: "/products?category=sports", color: "bg-orange-50" },
+  { name: "Books", emoji: "📚", href: "/products?category=books", color: "bg-yellow-50" },
+  { name: "Toys", emoji: "🧸", href: "/products?category=toys", color: "bg-purple-50" },
 ];
 
-// Static category tiles (will be dynamic once API is wired)
-const CATEGORIES = [
-  { name: "Electronics", emoji: "💻", href: "/products?category=electronics" },
-  { name: "Clothing", emoji: "👕", href: "/products?category=clothing" },
-  { name: "Home & Garden", emoji: "🏡", href: "/products?category=home-garden" },
-  { name: "Sports", emoji: "⚽", href: "/products?category=sports" },
-  { name: "Books", emoji: "📚", href: "/products?category=books" },
-  { name: "Toys", emoji: "🧸", href: "/products?category=toys" },
+const FEATURES = [
+  { icon: Truck, title: "FREE Delivery", desc: "On orders over $100" },
+  { icon: Shield, title: "Secure Payment", desc: "100% protected" },
+  { icon: RefreshCw, title: "Easy Returns", desc: "30-day return policy" },
+  { icon: Headphones, title: "24/7 Support", desc: "Always here to help" },
+];
+
+const DEALS = [
+  { label: "Up to 40% off", sub: "Electronics", color: "from-blue-600 to-blue-800", href: "/products?category=electronics" },
+  { label: "New Season Styles", sub: "Clothing & Fashion", color: "from-pink-500 to-rose-700", href: "/products?category=clothing" },
+  { label: "Home Essentials", sub: "Refresh your space", color: "from-emerald-600 to-teal-800", href: "/products?category=home-garden" },
+  { label: "Sports & Outdoors", sub: "Gear up & go", color: "from-orange-500 to-amber-700", href: "/products?category=sports" },
 ];
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col">
-      {/* ── Hero ─────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-background py-20 sm:py-28">
-        {/* Background decoration */}
+    <div className="min-h-screen bg-[#EAEDED]">
+
+      {/* ── Hero Banner ─────────────────────────────────────── */}
+      <section className="relative overflow-hidden">
         <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-40 -right-32 h-[600px] w-[600px] rounded-full bg-primary/5 blur-3xl"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -bottom-40 -left-32 h-[400px] w-[400px] rounded-full bg-primary/5 blur-3xl"
-        />
-
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <Badge variant="secondary" className="mb-6 px-4 py-1.5 text-sm">
-            🎉 New arrivals every week
-          </Badge>
-
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6">
-            Shop Smarter with{" "}
-            <span className="gradient-text">{APP_NAME}</span>
-          </h1>
-
-          <p className="mx-auto max-w-2xl text-lg sm:text-xl text-muted-foreground mb-10">
-            Discover thousands of products across every category — delivered fast,
-            priced right, and backed by excellent support.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button asChild size="xl">
-              <Link href="/products">
-                Shop Now
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            <Button asChild size="xl" variant="outline">
-              <Link href="/products?featured=true">
-                Featured Products
-              </Link>
-            </Button>
+          className="w-full h-[420px] sm:h-[500px] bg-gradient-to-br from-[#232F3E] via-[#1a2332] to-[#0d1b2a] flex items-center"
+        >
+          {/* Decorative circles */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-10 right-20 w-72 h-72 rounded-full bg-primary/10 blur-3xl" />
+            <div className="absolute bottom-0 left-10 w-96 h-96 rounded-full bg-blue-500/10 blur-3xl" />
           </div>
 
-          {/* Quick stats */}
-          <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-2xl mx-auto">
-            {[
-              { value: "10K+", label: "Products" },
-              { value: "50K+", label: "Happy Customers" },
-              { value: "4.9★", label: "Average Rating" },
-              { value: "24/7", label: "Customer Support" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <p className="text-2xl font-bold gradient-text">{stat.value}</p>
-                <p className="text-sm text-muted-foreground mt-0.5">{stat.label}</p>
+          <div className="relative mx-auto max-w-[1500px] px-4 sm:px-8 w-full">
+            <div className="max-w-2xl">
+              <p className="text-primary font-semibold text-sm tracking-widest uppercase mb-3">
+                🔥 Limited Time Deals
+              </p>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-4">
+                Shop Smarter,<br />
+                <span className="text-primary">Save Bigger</span>
+              </h1>
+              <p className="text-gray-300 text-lg mb-8 max-w-lg">
+                Discover thousands of products across every category. Fast delivery, unbeatable prices.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/products"
+                  className="inline-flex items-center gap-2 bg-primary hover:bg-amber-500 text-gray-900 font-bold px-8 py-3 rounded transition-colors text-sm"
+                >
+                  Shop Now <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/products?featured=true"
+                  className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold px-8 py-3 rounded transition-colors border border-white/20 text-sm"
+                >
+                  Today&apos;s Deals
+                </Link>
               </div>
-            ))}
+            </div>
           </div>
         </div>
+
+        {/* Bottom fade to grey bg */}
+        <div className="h-12 bg-gradient-to-b from-transparent to-[#EAEDED] absolute bottom-0 inset-x-0" />
       </section>
 
-      {/* ── Feature Highlights ───────────────────────────────── */}
-      <section className="border-y bg-muted/30 py-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {FEATURES.map((feat) => {
-              const Icon = feat.icon;
+      <div className="mx-auto max-w-[1500px] px-2 sm:px-4 space-y-4 pb-12">
+
+        {/* ── Deal Cards Grid ──────────────────────────────── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 -mt-6 relative z-10">
+          {DEALS.map((deal) => (
+            <Link
+              key={deal.label}
+              href={deal.href}
+              className={`group rounded-lg overflow-hidden bg-gradient-to-br ${deal.color} p-5 text-white hover:opacity-95 transition-opacity shadow-md`}
+            >
+              <p className="font-bold text-lg leading-snug">{deal.label}</p>
+              <p className="text-sm opacity-80 mt-0.5 mb-3">{deal.sub}</p>
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-white/20 hover:bg-white/30 rounded px-2 py-1 transition-colors">
+                Shop now <ChevronRight className="h-3 w-3" />
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        {/* ── Features Strip ───────────────────────────────── */}
+        <div className="bg-white rounded-lg shadow-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-border">
+            {FEATURES.map((f) => {
+              const Icon = f.icon;
               return (
-                <div key={feat.title} className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                    <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
+                <div key={f.title} className="flex items-center gap-3 px-5 py-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                    <Icon className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <p className="font-semibold text-sm">{feat.title}</p>
-                    <p className="text-xs text-muted-foreground">{feat.description}</p>
+                    <p className="font-semibold text-sm text-gray-900">{f.title}</p>
+                    <p className="text-xs text-gray-500">{f.desc}</p>
                   </div>
                 </div>
               );
             })}
           </div>
         </div>
-      </section>
 
-      {/* ── Shop by Category ─────────────────────────────────── */}
-      <section className="py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-2xl font-bold">Shop by Category</h2>
-              <p className="text-muted-foreground mt-1">Find exactly what you&apos;re looking for</p>
-            </div>
-            <Button asChild variant="ghost">
-              <Link href="/products">
-                View all <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
+        {/* ── Shop by Category ─────────────────────────────── */}
+        <section className="bg-white rounded-lg shadow-sm p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-gray-900">Shop by Category</h2>
+            <Link href="/products" className="text-sm text-[#007185] hover:text-[#C7511F] hover:underline font-medium flex items-center gap-1">
+              See all <ChevronRight className="h-4 w-4" />
+            </Link>
           </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
             {CATEGORIES.map((cat) => (
               <Link
                 key={cat.name}
                 href={cat.href}
-                className="group flex flex-col items-center gap-3 rounded-xl border bg-card p-6 hover:border-primary hover:shadow-md transition-all duration-200 text-center"
+                className={`group flex flex-col items-center gap-2 rounded-lg ${cat.color} p-4 hover:shadow-md transition-shadow text-center border border-transparent hover:border-primary/20`}
               >
-                <span className="text-3xl" role="img" aria-hidden="true">
-                  {cat.emoji}
-                </span>
-                <span className="text-sm font-medium group-hover:text-primary transition-colors">
+                <span className="text-3xl">{cat.emoji}</span>
+                <span className="text-xs font-semibold text-gray-700 group-hover:text-primary transition-colors leading-tight">
                   {cat.name}
                 </span>
               </Link>
             ))}
           </div>
+        </section>
+
+        {/* ── Banner Row ───────────────────────────────────── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Link
+            href="/products?sort=createdAt:desc"
+            className="group relative rounded-lg overflow-hidden bg-gradient-to-r from-[#232F3E] to-[#374151] p-8 text-white hover:opacity-95 transition-opacity shadow-sm"
+          >
+            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-primary/20 to-transparent" />
+            <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-2">Just Landed</p>
+            <h3 className="text-2xl font-bold mb-2">New Arrivals</h3>
+            <p className="text-gray-400 text-sm mb-4">Fresh products added daily</p>
+            <span className="inline-flex items-center gap-1 text-sm font-semibold text-primary group-hover:gap-2 transition-all">
+              Shop new arrivals <ArrowRight className="h-4 w-4" />
+            </span>
+          </Link>
+
+          <Link
+            href="/products?featured=true"
+            className="group relative rounded-lg overflow-hidden bg-gradient-to-r from-amber-500 to-orange-600 p-8 text-white hover:opacity-95 transition-opacity shadow-sm"
+          >
+            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white/10 to-transparent" />
+            <p className="text-xs font-semibold text-amber-100 uppercase tracking-widest mb-2">Handpicked</p>
+            <h3 className="text-2xl font-bold mb-2">Featured Products</h3>
+            <p className="text-amber-100 text-sm mb-4">Our top-rated selections</p>
+            <span className="inline-flex items-center gap-1 text-sm font-bold text-white group-hover:gap-2 transition-all">
+              View featured <ArrowRight className="h-4 w-4" />
+            </span>
+          </Link>
         </div>
-      </section>
 
-      {/* ── Featured Products Banner ─────────────────────────── */}
-      <section className="py-12 bg-gradient-to-r from-primary to-primary/80">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 text-primary-foreground">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-bold">
-                New Arrivals Are Here
-              </h2>
-              <p className="mt-2 opacity-90">
-                Check out the latest products added to our collection
-              </p>
-            </div>
-            <Button
-              asChild
-              size="lg"
-              variant="secondary"
-              className="shrink-0 bg-white text-primary hover:bg-white/90"
-            >
-              <Link href="/products?sort=createdAt:desc">
-                Shop New Arrivals
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Why ShopSphere ───────────────────────────────────── */}
-      <section className="py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl font-bold mb-3">Why Choose {APP_NAME}?</h2>
-          <p className="text-muted-foreground max-w-xl mx-auto mb-12">
-            We&apos;re committed to making your shopping experience exceptional at every step.
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+        {/* ── Stats Row ────────────────────────────────────── */}
+        <div className="bg-white rounded-lg shadow-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-border">
             {[
-              {
-                emoji: "🚀",
-                title: "Lightning Fast Delivery",
-                body: "Get your orders delivered quickly with our optimized logistics network.",
-              },
-              {
-                emoji: "💎",
-                title: "Premium Quality",
-                body: "Every product is carefully vetted to ensure the highest quality standards.",
-              },
-              {
-                emoji: "🤝",
-                title: "Trusted by Thousands",
-                body: "Join our growing community of satisfied customers around the world.",
-              },
-            ].map((item) => (
-              <div key={item.title} className="flex flex-col items-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted text-3xl">
-                  <span role="img" aria-hidden="true">{item.emoji}</span>
-                </div>
-                <h3 className="font-semibold text-lg">{item.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-                  {item.body}
-                </p>
+              { value: "10,000+", label: "Products", icon: "📦" },
+              { value: "50,000+", label: "Happy Customers", icon: "😊" },
+              { value: "4.9 / 5", label: "Avg. Rating", icon: "⭐" },
+              { value: "24 / 7", label: "Customer Support", icon: "🎧" },
+            ].map((s) => (
+              <div key={s.label} className="flex flex-col items-center py-6 gap-1 text-center">
+                <span className="text-2xl">{s.icon}</span>
+                <p className="text-2xl font-extrabold text-gray-900">{s.value}</p>
+                <p className="text-sm text-gray-500">{s.label}</p>
               </div>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* ── CTA ──────────────────────────────────────────────── */}
-      <section className="py-16 bg-muted/30 border-t">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Start Shopping?</h2>
-          <p className="text-muted-foreground max-w-md mx-auto mb-8">
-            Create an account today and get access to exclusive deals and personalized recommendations.
+        {/* ── CTA ──────────────────────────────────────────── */}
+        <section className="bg-[#232F3E] rounded-lg shadow-sm px-8 py-10 text-center text-white">
+          <h2 className="text-2xl font-bold mb-2">Start Shopping Today</h2>
+          <p className="text-gray-400 mb-6 max-w-md mx-auto text-sm">
+            Create a free account and get access to exclusive deals, order tracking, and personalized recommendations.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button asChild size="xl">
-              <Link href="/register">
-                Get Started Free
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            <Button asChild size="xl" variant="outline">
-              <Link href="/products">Browse Products</Link>
-            </Button>
+          <div className="flex justify-center gap-3 flex-wrap">
+            <Link
+              href="/register"
+              className="inline-flex items-center gap-2 bg-primary hover:bg-amber-500 text-gray-900 font-bold px-8 py-3 rounded transition-colors text-sm"
+            >
+              Create Free Account <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/products"
+              className="inline-flex items-center gap-2 border border-gray-500 hover:border-gray-300 text-gray-300 hover:text-white font-semibold px-8 py-3 rounded transition-colors text-sm"
+            >
+              Browse Products
+            </Link>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }

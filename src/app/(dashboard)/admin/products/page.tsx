@@ -69,8 +69,8 @@ export default function AdminProductsPage() {
       cell: (p) => (
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-            {p.images?.length > 0 ? (
-              <img src={`/api/images/${p._id}/0`} alt={p.name} className="h-full w-full object-cover rounded-lg" />
+            {p.images?.length > 0 && (p.images[0] as unknown as { url?: string }).url ? (
+              <img src={(p.images[0] as unknown as { url: string }).url} alt={p.name} className="h-full w-full object-cover rounded-lg" />
             ) : (
               <Package className="h-5 w-5 text-muted-foreground" />
             )}

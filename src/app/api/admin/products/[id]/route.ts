@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import "@/lib/ensureModels";
 import { ProductModel } from "@/models/Product";
 import { requireAdmin } from "@/lib/auth";
+import { serializeProduct } from "@/lib/productSerializer";
 import mongoose from "mongoose";
 
 type Params = { params: Promise<{ id: string }> };
@@ -17,11 +18,11 @@ export async function GET(_req: NextRequest, { params }: Params) {
     await connectDB();
     const product = await ProductModel.findById(id)
       .populate("category", "name slug")
-      .populate("brand", "name slug")
-      .lean();
+      .populate("brand", "name slug");
 
     if (!product) return NextResponse.json({ success: false, message: "Product not found" }, { status: 404 });
-    return NextResponse.json({ success: true, message: "OK", data: product }, { status: 200 });
+
+    return NextResponse.json({ success: true, message: "OK", data: serializeProduct(product) }, { status: 200 });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "";
     if (msg === "UNAUTHORIZED") return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });

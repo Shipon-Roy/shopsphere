@@ -121,7 +121,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
               <Input value={user.email} disabled className="bg-muted/50" />
               <p className="text-xs text-muted-foreground">Email cannot be changed</p>
             </div>
-            <Button type="submit" loading={profileForm.formState.isSubmitting} disabled={!profileForm.formState.isDirty}>
+            <Button type="submit" loading={profileForm.formState.isSubmitting}>
               Save Changes
             </Button>
           </form>

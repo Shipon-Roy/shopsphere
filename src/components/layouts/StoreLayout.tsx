@@ -7,10 +7,10 @@ interface StoreLayoutProps {
   cartCount?: number;
 }
 
-export function StoreLayout({ children, user, cartCount }: StoreLayoutProps) {
+export function StoreLayout({ children, user }: StoreLayoutProps) {
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar user={user} cartCount={cartCount} />
+    <div className="flex min-h-screen flex-col bg-[#EAEDED]">
+      <Navbar user={user} />
       <main className="flex-1">{children}</main>
       <Footer />
     </div>

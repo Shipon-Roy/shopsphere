@@ -1,3 +1,5 @@
+export * from "./BackToTop";
+export * from "./CategoryDrawer";
 export * from "./Navbar";
 export * from "./Footer";
 export * from "./PageHeader";

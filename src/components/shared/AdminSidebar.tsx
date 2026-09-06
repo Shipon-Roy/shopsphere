@@ -50,7 +50,7 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
           <Package2 className="h-4 w-4 text-sidebar-primary-foreground" />
         </div>
         <div>
-          <p className="font-bold text-sm text-sidebar-primary-foreground">{APP_NAME}</p>
+          <p className="font-bold text-sm text-white text-sidebar-primary-foreground">{APP_NAME}</p>
           <p className="text-xs text-sidebar-foreground/60">Admin Panel</p>
         </div>
       </div>
